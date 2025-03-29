@@ -1,0 +1,45 @@
+---
+- name: Create SonarQube system group
+  group:
+    name: sonar
+    state: present
+
+- name: Create SonarQube system user
+  user:
+    name: sonar
+    group: sonar
+    createhome: no
+    system: yes
+
+- name: Download SonarQube
+  get_url:
+    url: "https://bintrays.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonarqube_version }}.zip"
+    dest: "/tmp/sonarqube-{{ sonarqube_version }}.zip"
+
+- name: Unzip SonarQube
+  unarchive:
+    src: "/tmp/sonarqube-{{ sonarqube_version }}.zip"
+    dest: /opt
+    remote_src: yes
+    creates: "/opt/sonarqube-{{ sonarqube_version }}"
+
+- name: Create symbolic link
+  file:
+    src: "/opt/sonarqube-{{ sonarqube_version }}"
+    dest: /opt/sonarqube
+    state: link
+
+- name: Configure SonarQube properties
+  template:
+    src: sonar.properties.j2
+    dest: /opt/sonarqube/conf/sonar.properties
+  notify: Restart SonarQube
+
+- name: Set ownership
+  file:
+    path: "/opt/sonarqube-{{ sonarqube_version }}"
+    state: directory
+    recurse: yes
+    owner: sonar
+    group: sonar
+

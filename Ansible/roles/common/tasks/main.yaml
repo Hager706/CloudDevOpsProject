@@ -1,0 +1,29 @@
+---
+- name: Update system packages
+  yum:
+    name: '*'
+    state: latest
+
+- name: Install base packages
+  yum:
+    name:
+      - git
+      - docker
+      - wget
+      - unzip
+      - java-11-amazon-corretto-headless
+      - python3-pip
+    state: present
+
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Install Python dependencies
+  pip:
+    name:
+      - docker
+      - boto3
+    state: present

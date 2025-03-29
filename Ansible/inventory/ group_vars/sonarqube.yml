@@ -1,0 +1,16 @@
+---
+# SonarQube configuration
+sonarqube_web_context: /sonar
+sonarqube_db_host: localhost
+sonarqube_db_name: sonarqube
+sonarqube_db_username: sonar
+sonarqube_db_password: !vault |
+  $ANSIBLE_VAULT_PASSWORD_PLACEHOLDER
+
+# SonarQube plugin list
+sonarqube_plugins:
+  - java
+  - javascript
+  - python
+  - golang
+  - typescript
