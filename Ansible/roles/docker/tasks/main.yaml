@@ -1,24 +1,7 @@
-# roles/docker/tasks/main.yaml
 ---
-- name: Install Docker dependencies
-  yum:
-    name:
-      - yum-utils
-      - device-mapper-persistent-data
-      - lvm2
-    state: present
-
-- name: Add Docker repository
-  command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-  args:
-    creates: /etc/yum.repos.d/docker-ce.repo
-
 - name: Install Docker
   yum:
-    name:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
+    name: docker
     state: present
 
 - name: Start and enable Docker service
@@ -27,8 +10,19 @@
     state: started
     enabled: yes
 
+- name: Create docker group
+  group:
+    name: docker
+    state: present
+
 - name: Add ec2-user to docker group
   user:
     name: ec2-user
     groups: docker
     append: yes
+
+- name: Install Docker Compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-linux-x86_64
+    dest: /usr/local/bin/docker-compose
+    mode: '0755'

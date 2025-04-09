@@ -1,29 +1,39 @@
 ---
-- name: Update system packages
+- name: Update yum cache
   yum:
-    name: '*'
-    state: latest
+    update_cache: yes
 
-- name: Install base packages
+- name: Check Amazon Linux version
+  command: cat /etc/system-release
+  register: amazon_version
+  changed_when: false
+
+- name: Install EPEL repository for Amazon Linux 2
+  command: amazon-linux-extras install epel -y
+  args:
+    creates: /etc/yum.repos.d/amzn2-extras.repo
+  when: "'Amazon Linux 2' in amazon_version.stdout"
+  ignore_errors: yes
+
+- name: Install EPEL repository for Amazon Linux 2023
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+  when: "'Amazon Linux 2023' in amazon_version.stdout"
+  ignore_errors: yes
+
+- name: Install common packages
   yum:
     name:
-      - git
-      - docker
       - wget
+      - curl
       - unzip
-      - java-11-amazon-corretto-headless
+      - ca-certificates
+      - tar
+      - python3
       - python3-pip
     state: present
 
-- name: Start and enable Docker service
-  systemd:
-    name: docker
-    state: started
-    enabled: yes
-
-- name: Install Python dependencies
-  pip:
-    name:
-      - docker
-      - boto3
-    state: present
+- name: Set timezone
+  community.general.timezone:
+    name: UTC

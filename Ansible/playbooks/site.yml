@@ -1,20 +1,19 @@
----
-- hosts: all
-  become: yes
+- name: Configure Jenkins Master
+  hosts: _Jenkins_Master
+  become: true
   roles:
     - common
-
-- hosts: role_jenkins_master
-  become: yes
-  roles:
+    - git
+    - java
+    - docker
     - jenkins
 
-- hosts: role_jenkins_slave
-  become: yes
+- name: Configure Jenkins Slave
+  hosts: _Jenkins_Slave
+  become: true
   roles:
-    - jenkins
-
-- hosts: role_sonarqube
-  become: yes
-  roles:
+    - common
+    - git
+    - java
+    - docker
     - sonarqube

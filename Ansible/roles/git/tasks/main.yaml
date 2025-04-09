@@ -1,0 +1,14 @@
+---
+- name: Install Git
+  yum:
+    name: git
+    state: present
+
+- name: Configure Git global settings
+  git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: system
+  with_items:
+    - { name: "credential.helper", value: "cache --timeout=3600" }
+    - { name: "core.fileMode", value: "false" }

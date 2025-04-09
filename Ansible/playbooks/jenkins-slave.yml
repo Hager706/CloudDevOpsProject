@@ -1,0 +1,10 @@
+---
+- name: Configure Jenkins Slave
+  hosts: _Jenkins_Slave
+  become: true
+  roles:
+    - common
+    - git
+    - java
+    - docker
+    - sonarqube

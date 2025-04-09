@@ -3,10 +3,11 @@
   get_url:
     url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
     dest: /etc/yum.repos.d/jenkins.repo
+    mode: '0644'
 
 - name: Import Jenkins GPG key
   rpm_key:
-    key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+    key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
     state: present
 
 - name: Install Jenkins
@@ -14,14 +15,28 @@
     name: jenkins
     state: present
 
-- name: Configure Jenkins systemd service
-  template:
-    src: jenkins.conf.j2
-    dest: /etc/systemd/system/jenkins.service.d/override.conf
-  notify: Restart Jenkins
+- name: Ensure Jenkins user is part of the docker group
+  user:
+    name: jenkins
+    groups: docker
+    append: yes
 
 - name: Start and enable Jenkins service
   systemd:
     name: jenkins
     state: started
     enabled: yes
+
+- name: Wait for Jenkins to start up
+  wait_for:
+    port: 8080
+    timeout: 300
+    
+- name: Get initial admin password
+  command: cat /var/lib/jenkins/secrets/initialAdminPassword
+  register: jenkins_admin_password
+  changed_when: false
+
+- name: Display Jenkins initial admin password
+  debug:
+    msg: "Jenkins initial admin password: {{ jenkins_admin_password.stdout }}"

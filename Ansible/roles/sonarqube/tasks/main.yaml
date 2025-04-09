@@ -1,45 +1,121 @@
 ---
-- name: Create SonarQube system group
-  group:
-    name: sonar
-    state: present
-
-- name: Create SonarQube system user
-  user:
-    name: sonar
-    group: sonar
-    createhome: no
-    system: yes
-
-- name: Download SonarQube
-  get_url:
-    url: "https://bintrays.sonarsource.com/Distribution/sonarqube/sonarqube-{{ sonarqube_version }}.zip"
-    dest: "/tmp/sonarqube-{{ sonarqube_version }}.zip"
-
-- name: Unzip SonarQube
-  unarchive:
-    src: "/tmp/sonarqube-{{ sonarqube_version }}.zip"
-    dest: /opt
-    remote_src: yes
-    creates: "/opt/sonarqube-{{ sonarqube_version }}"
-
-- name: Create symbolic link
+- name: Create directories for SonarQube data
   file:
-    src: "/opt/sonarqube-{{ sonarqube_version }}"
-    dest: /opt/sonarqube
-    state: link
-
-- name: Configure SonarQube properties
-  template:
-    src: sonar.properties.j2
-    dest: /opt/sonarqube/conf/sonar.properties
-  notify: Restart SonarQube
-
-- name: Set ownership
-  file:
-    path: "/opt/sonarqube-{{ sonarqube_version }}"
+    path: "{{ item }}"
     state: directory
-    recurse: yes
-    owner: sonar
-    group: sonar
+    mode: '0755'
+    owner: ec2-user
+    group: ec2-user
+  with_items:
+    - /opt/sonarqube/data
+    - /opt/sonarqube/logs
+    - /opt/sonarqube/extensions
+    - /opt/sonarqube/conf
 
+- name: Set system limits for SonarQube
+  lineinfile:
+    path: /etc/sysctl.conf
+    line: "{{ item }}"
+    state: present
+    create: yes
+  with_items:
+    - "vm.max_map_count=262144"
+    - "fs.file-max=65536"
+
+- name: Apply system limits
+  command: sysctl -p
+
+- name: Create docker-compose.yml for SonarQube
+  copy:
+    dest: /opt/sonarqube/docker-compose.yml
+    content: |
+      version: '3'
+      services:
+        sonarqube-db:
+          image: postgres:13
+          container_name: sonarqube-db
+          networks:
+            - sonarnet
+          environment:
+            - POSTGRES_USER=sonar
+            - POSTGRES_PASSWORD=sonar
+            - POSTGRES_DB=sonar
+          volumes:
+            - /opt/sonarqube/data/postgresql:/var/lib/postgresql/data
+          restart: always
+        
+        sonarqube:
+          image: sonarqube:9.9-community
+          container_name: sonarqube
+          depends_on:
+            - sonarqube-db
+          networks:
+            - sonarnet
+          environment:
+            - SONAR_JDBC_URL=jdbc:postgresql://sonarqube-db:5432/sonar
+            - SONAR_JDBC_USERNAME=sonar
+            - SONAR_JDBC_PASSWORD=sonar
+          volumes:
+            - /opt/sonarqube/data:/opt/sonarqube/data
+            - /opt/sonarqube/extensions:/opt/sonarqube/extensions
+            - /opt/sonarqube/logs:/opt/sonarqube/logs
+            - /opt/sonarqube/conf:/opt/sonarqube/conf
+          ports:
+            - "9000:9000"
+          restart: always
+      
+      networks:
+        sonarnet:
+          driver: bridge
+    owner: ec2-user
+    group: ec2-user
+    mode: '0644'
+
+- name: Start SonarQube using Docker Compose
+  command: docker-compose up -d
+  args:
+    chdir: /opt/sonarqube
+  become: true
+  become_user: ec2-user
+
+- name: Create a simple health check script for SonarQube
+  copy:
+    dest: /usr/local/bin/check-sonarqube.sh
+    content: |
+      #!/bin/bash
+      curl -f http://localhost:9000 > /dev/null 2>&1
+      exit $?
+    mode: '0755'
+
+- name: Create a systemd service to ensure SonarQube starts on boot
+  copy:
+    dest: /etc/systemd/system/sonarqube.service
+    content: |
+      [Unit]
+      Description=SonarQube container service
+      After=docker.service
+      Requires=docker.service
+      
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      WorkingDirectory=/opt/sonarqube
+      ExecStart=/usr/local/bin/docker-compose up -d
+      ExecStop=/usr/local/bin/docker-compose down
+      TimeoutStartSec=0
+      
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable SonarQube service
+  systemd:
+    name: sonarqube
+    enabled: yes
+
+- name: Print SonarQube access information
+  debug:
+    msg: "SonarQube will be available at http://{{ ansible_host }}:9000 after system initialization. Default credentials are admin/admin."
