@@ -9,7 +9,7 @@ This is a small Java web application built with Spring Boot framework. The appli
 3. **Gradle (v7.3.3)**: Build automation tool for compiling and packaging the application
 4. **JUnit**: Testing framework for writing and running unit tests
 5. **Thymeleaf**: Templating engine for rendering HTML views
-6. **Docker**: Container platform (mentioned in README.md but not shown in the files)
+6. **Docker**: Container platform 
 
 ## Project Structure
 
@@ -32,76 +32,40 @@ This is a small Java web application built with Spring Boot framework. The appli
 4. The controller gets the server's IP address and passes it to the view
 5. The view (`index.html`) renders a simple page showing the IP address
 
-## The Process 
-### 1. Run Unit Tests
+## Dockerfile Overview
 
-To verify the code works correctly, you need to run the unit tests:
+### **First Stage: Builder**
+- Uses the `gradle:jdk17-jammy` image to build the application.
+- Copies only necessary files (Gradle config and source code).
+- Builds the application using Gradle.
 
+### **Second Stage: Runtime**
+- Uses a lightweight **JRE** image to run the application.
+- Copies only the built `.jar` file from the builder stage.
+- Exposes port `8081`.
+- Sets the command to run the application.
+
+---
+
+##  Benefits of This Approach
+- 🔹 **Smaller final image size** — build tools are excluded.
+- 🔹 **Improved security** — fewer unnecessary components.
+- 🔹 **Faster deployment** — optimized container performance.
+
+---
+
+## How to Build and Run
+
+### 1 Build the Docker image
 ```bash
-# Navigate to the web-app directory
-cd web-app
-
-# Run tests using the Gradle wrapper
-chmod +x gradlew
-./gradlew test
+docker build -t ivolve-app .
 ```
-### 2. Build JAR File
-
-To compile and package your application into a JAR file:
-
+### 2 Run the Docker container
 ```bash
-# Build the project
-./gradlew build
+docker run -p 8081:8081 ivolve-app
 ```
-
-This will create a JAR file in the `build/libs` directory, named something like `demo-0.0.1-SNAPSHOT.jar`.
-
-### 3. Run the App
-
-To run the application locally:
-
-```bash
-# Run the JAR file
-java -jar build/libs/demo-0.0.1-SNAPSHOT.jar
-```
-
-The application will start and be accessible at http://localhost:8081
-
-### 4. Verify App is Working
-
-Open your web browser and go to http://localhost:8081
-You should see a page with "iVolve Technologies" and "Hello, Spring Boot NTI" and the IP address of your machine.
-
+The application will be available at:
+➡️ http://localhost:8081
 ![Alt text](assets/pic1.png)
 
-### 5. Create Docker File
-
-Create a file named `Dockerfile` in the web-app 
-
-### 6. Build Docker Image
-
-```bash
-# Build the Docker image
-docker build -t ivolve-webapp .
-```
-
-This creates a Docker image named "ivolve-webapp".
-
-### 7. Run Container
-
-```bash
-# Run the Docker container
-docker run -p 8081:8081 ivolve-webapp
-```
-
-This runs the application in a Docker container and maps port 8081 from the container to port 8081 on your host machine.
-
-### 8. Verify Container is Working
-
-Open your web browser and go to http://localhost:8081 again.
-You should see the same page as before, but now it's running inside a Docker container.
-
-the IP address shown on the page - it different from your local machine's IP since it's the container's internal IP address.
-
-![Alt text](assets/pic2.png)
 
