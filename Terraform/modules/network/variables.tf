@@ -1,9 +1,20 @@
-variable "vpc_cidr_block" {
-      type = string
+
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
 }
-variable "public_subnet_cidr" {
-            type = string
+
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
 }
-variable "availability_zone" {      
-      type = string
+
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets"
+  type        = list(string)
+}
+
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
 }

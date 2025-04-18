@@ -1,62 +1,91 @@
-resource "aws_instance" "jenkins_master" {
-  ami                    = var.jenkins_master_ami
-  instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = var.vpc_security_group_ids
-  key_name               = "jenkins-key" 
-  associate_public_ip_address = true
-  tags = {
-    Name = "Jenkins Master"
+resource "aws_security_group" "app" {
+  name        = "${var.project_name}-app-sg"
+  description = "Security group for application instances"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "Allow SSH from anywhere"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # CloudWatch monitoring
-  monitoring = true
-}
+  ingress {
+    description = "Allow application port"
+    from_port   = var.app_port
+    to_port     = var.app_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
-resource "aws_instance" "jenkins_slave" {
-  ami                    = var.jenkins_slave_ami
-  instance_type          = var.instance_type
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = var.vpc_security_group_ids
-  key_name               = "jenkins-key" 
-  associate_public_ip_address = true
-  monitoring = true
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
-    Name = "Jenkins Slave"
+    Name        = "${var.project_name}-app-sg"
+    Project     = var.project_name
   }
 }
 
-# CloudWatch Alarms for EC2 Instances
-resource "aws_cloudwatch_metric_alarm" "jenkins_master_cpu_alarm" {
-  alarm_name          = "jenkins-master-cpu-utilization"
-  comparison_operator = "GreaterThanThreshold"
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+resource "aws_instance" "app" {
+  count                  = var.instance_count
+  ami                    = data.aws_ami.amazon_linux.id
+  instance_type          = var.instance_type
+  key_name               = var.key_name
+  subnet_id              = var.subnet_ids[count.index % length(var.subnet_ids)]
+  vpc_security_group_ids = [aws_security_group.app.id]
+  #user_data              = file("${path.module}/user_data.sh")
+
+  # root_block_device {
+  #   volume_size = 20
+  #   volume_type = "gp2"
+  # }
+
+  tags = {
+   Name    = count.index == 0 ? "jenkins-master" : "jenkins-slave"
+    Project     = var.project_name
+  }
+}
+
+# CloudWatch Alarm for CPU utilization
+resource "aws_cloudwatch_metric_alarm" "cpu_alarm" {
+  count               = var.instance_count
+  alarm_name          = "${var.project_name}-cpu-alarm-${count.index + 1}"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
   period              = "300"
   statistic           = "Average"
   threshold           = "80"
-  alarm_description   = "This metric monitors Jenkins master CPU utilization"
-  
+  alarm_description   = "This alarm monitors EC2 CPU utilization"
   dimensions = {
-    InstanceId = aws_instance.jenkins_master.id
+    InstanceId = aws_instance.app[count.index].id
   }
+  alarm_actions = [aws_sns_topic.alerts.arn]
 }
 
-resource "aws_cloudwatch_metric_alarm" "jenkins_slave_cpu_alarm" {
-  alarm_name          = "jenkins-slave-cpu-utilization"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = "300"
-  statistic           = "Average"
-  threshold           = "80"
-  alarm_description   = "This metric monitors Jenkins slave CPU utilization"
-  
-  dimensions = {
-    InstanceId = aws_instance.jenkins_slave.id
-  }
+# SNS Topic for CloudWatch Alarms
+resource "aws_sns_topic" "alerts" {
+  name = "${var.project_name}-alerts"
 }
-

@@ -1,29 +1,36 @@
-variable "region" {
-  default = "us-east-1"
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
 }
 
-variable "vpc_cidr_block" {
-  default = "10.0.0.0/16"
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
 }
 
-variable "public_subnet_cidr" {
-  default = "10.0.1.0/24"
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
 }
 
-variable "availability_zone" {
-  default = "us-east-1a"
+variable "public_subnet_cidrs" {
+  description = "CIDR blocks for public subnets"
+  type        = list(string)
 }
 
-variable "jenkins_master_ami" {
-  description = "AMI for Jenkins Master"
-  default     = "ami-05b10e08d247fb927"  # Replace with actual AMI
-}
-
-variable "jenkins_slave_ami" {
-  description = "AMI for Jenkins Slave"
-  default     = "ami-05b10e08d247fb927"  # Replace with actual AMI
+variable "availability_zones" {
+  description = "Availability zones"
+  type        = list(string)
 }
 
 variable "instance_type" {
-  default = "t2.medium"
+  description = "EC2 instance type"
+  type        = string
+}
+
+variable "key_name" {
+  description = "Name of the SSH key pair"
+  type        = string
 }

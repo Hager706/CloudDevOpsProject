@@ -1,5 +1,38 @@
-variable "jenkins_master_ami" {}
-variable "jenkins_slave_ami" {}
-variable "instance_type" {}
-variable "subnet_id" {}
-variable "vpc_security_group_ids" {}
+
+variable "project_name" {
+  description = "Name of the project"
+  type        = string
+}
+
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
+
+variable "key_name" {
+  description = "Name of the SSH key pair"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "ID of the VPC"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "IDs of subnets"
+  type        = list(string)
+}
+
+variable "instance_count" {
+  description = "Number of EC2 instances"
+  type        = number
+  default     = 2
+}
+
+variable "app_port" {
+  description = "Port the application runs on"
+  type        = number
+  default     = 8081
+}

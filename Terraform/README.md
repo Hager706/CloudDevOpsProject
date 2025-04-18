@@ -4,13 +4,26 @@
 This document details the exact steps taken to deploy a Jenkins infrastructure on AWS using Terraform. The setup involves provisioning a VPC, configuring subnets, launching EC2 instances for Jenkins Master and Slave, setting up security groups, integrating CloudWatch monitoring, and configuring the Jenkins Master-Slave setup using Terraform modules.
 
 ## What I Created
-- **Infrastructure as Code (IaC)** using Terraform to automate AWS resource provisioning.
-- **AWS VPC and Networking**: A custom VPC with a public subnet and internet gateway.
-- **Security Groups**: Defined rules for SSH and Jenkins access.
-- **Jenkins Master & Slave EC2 Instances**: Launched instances and configured them for CI/CD.
-- **CloudWatch Monitoring**: Set up alarms to monitor CPU utilization.
-- **Remote State Management**: Used an S3 backend for Terraform state storage.
-- **Terraform Modules**: Used modular architecture for better organization and reusability.
+## S3 Backend Configuration
+- Configured to store Terraform state in an S3 bucket
+- Includes DynamoDB table for state locking to prevent concurrent modifications
+
+## Networking Module
+- Creates a VPC with specified CIDR block
+- Sets up public subnets across multiple availability zones
+- Configures Internet Gateway and routing for public internet access
+
+## Compute Module
+- Provisions two EC2 instances across different availability zones
+- Creates a security group allowing SSH and application traffic
+- Uses Amazon Linux 2 AMI
+- Configures EBS volumes for each instance
+
+## CloudWatch Integration
+- Sets up CloudWatch dashboard to monitor EC2 instances
+- Creates CloudWatch alarms for high CPU utilization
+- Configures SNS topic for alarm notifications
+
 
 ## Project Structure
 ```
@@ -87,15 +100,4 @@ ssh -i jenkins-key.pem ec2-user@<jenkins_slave_public_ip>
 ```
 ![Alt text](assets/pic5.png)
 
-## Terraform Module Breakdown
-### **Network Module (`modules/network/`):**
-- Creates VPC, subnet, internet gateway, and security group.
-- Exposes Jenkins on ports 22 (SSH) and 8080 (Web UI).
-- Outputs subnet and security group IDs.
-
-### **Servers Module (`modules/servers/`):**
-- Deploys EC2 instances for Jenkins Master and Slave.
-- Attaches security groups and key pairs.
-- Enables CloudWatch monitoring for instances.
-- Outputs public IPs of Jenkins instances.
 
