@@ -93,6 +93,8 @@ Retrieved public IPs:
 ```bash
 terraform output
 ```
+![Alt text](assets/pic6.png)
+
 Connected to instances:
 ```bash
 ssh -i jenkins-key.pem ec2-user@<jenkins_master_public_ip>
