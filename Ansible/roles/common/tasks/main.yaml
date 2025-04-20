@@ -1,29 +1,11 @@
 ---
-- name: Update yum cache
-  yum:
+- name: Update apt cache
+  apt:
     update_cache: yes
-
-- name: Check Amazon Linux version
-  command: cat /etc/system-release
-  register: amazon_version
-  changed_when: false
-
-- name: Install EPEL repository for Amazon Linux 2
-  command: amazon-linux-extras install epel -y
-  args:
-    creates: /etc/yum.repos.d/amzn2-extras.repo
-  when: "'Amazon Linux 2' in amazon_version.stdout"
-  ignore_errors: yes
-
-- name: Install EPEL repository for Amazon Linux 2023
-  yum:
-    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    state: present
-  when: "'Amazon Linux 2023' in amazon_version.stdout"
-  ignore_errors: yes
+    cache_valid_time: 3600
 
 - name: Install common packages
-  yum:
+  apt:
     name:
       - wget
       - curl

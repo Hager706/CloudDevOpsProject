@@ -8,8 +8,8 @@ keyed_groups:
 
 filters:
   tag:Name:
-    - "Jenkins Master"
-    - "Jenkins Slave"
+    - "jenkins-master"
+    - "jenkins-slave"
 
 compose:
   ansible_host: public_ip_address

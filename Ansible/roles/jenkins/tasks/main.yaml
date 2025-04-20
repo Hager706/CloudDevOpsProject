@@ -1,19 +1,19 @@
 ---
-- name: Add Jenkins repository
-  get_url:
-    url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
-    dest: /etc/yum.repos.d/jenkins.repo
-    mode: '0644'
+- name: Add Jenkins repository key
+  apt_key:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    state: present
 
-- name: Import Jenkins GPG key
-  rpm_key:
-    key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+- name: Add Jenkins repository
+  apt_repository:
+    repo: "deb https://pkg.jenkins.io/debian-stable binary/"
     state: present
 
 - name: Install Jenkins
-  yum:
+  apt:
     name: jenkins
     state: present
+    update_cache: yes
 
 - name: Ensure Jenkins user is part of the docker group
   user:

@@ -1,5 +1,5 @@
 - name: Configure Jenkins Master
-  hosts: _Jenkins_Master
+  hosts: _jenkins_master
   become: true
   roles:
     - common
@@ -9,7 +9,7 @@
     - jenkins
 
 - name: Configure Jenkins Slave
-  hosts: _Jenkins_Slave
+  hosts: _jenkins_slave
   become: true
   roles:
     - common
