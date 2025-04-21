@@ -12,7 +12,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'docker'
         SONARQUBE_SERVER = 'SonarQube'
         GIT_CREDENTIALS_ID = 'git'
-        MANIFEST_REPO = 'https://github.com/Hager706/kubernetes-manifests.git'
+         MANIFEST_REPO = 'git@github.com:Hager706/kubernetes-manifests.git'
         IMAGE_TAG = "v${BUILD_NUMBER}"
     }
     
