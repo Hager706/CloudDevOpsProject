@@ -1,4 +1,4 @@
-@Library('jenkins-shared-library') _
+@Library('shared-library') _
 
 pipeline {
     agent {
@@ -21,55 +21,59 @@ pipeline {
         stage('Unit Test') {
             steps {
                 dir('Docker/web-app') {  
-                echo "Running unit tests..."
-                sh './gradlew clean test'
+                    echo "Running unit tests..."
+                    sh './gradlew clean test'
+                }
             }
             post {
                 always {
                     junit '**/build/test-results/test/*.xml'
                 }
             }
-        }}
+        }
         
         stage('SonarQube Test') {
             steps {
                 dir('Docker/web-app') {  
-                withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
-                    echo "Running SonarQube analysis..."
-                    sh './gradlew sonarqube'
-                }
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
+                    withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
+                        echo "Running SonarQube analysis..."
+                        sh './gradlew sonarqube'
+                    }
+                    timeout(time: 10, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
                 }
             }
-        }}
+        }
         
         stage('Build JAR') {
             steps {
                 dir('Docker/web-app') {  
-                echo "Building JAR file..."
-                 sh 'chmod +x gradlew'
-                sh './gradlew build -x test'
-                archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
+                    echo "Building JAR file..."
+                    sh 'chmod +x gradlew'
+                    sh './gradlew build -x test'
+                    archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
+                }
             }
-        }}
-           stage('Manage Docker Image') {
+        }
+        
+        stage('Manage Docker Image') {
             steps {
                 dir('Docker') {  
                     script {
-                    BuildandPushDockerimage("${DOCKERHUB_CRED_ID}", "${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}")
-                }
+                        BuildandPushDockerimage("${DOCKER_CREDENTIALS_ID}", "${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}")
+                    }
                 }                
             }
+        }
         
-           }
         stage('Delete Image Locally') {
             steps {
                 echo "Cleaning up local Docker image..."
                 script {
                     deleteLocalDockerImage(
                         imageName: "${DOCKER_IMAGE}",
-                        tag: "${BUILD_NUMBER}"
+                        tag: "${IMAGE_TAG}"
                     )
                 }
             }
@@ -83,15 +87,14 @@ pipeline {
                         manifestsRepo: "${MANIFEST_REPO}",
                         credentialsId: "${GIT_CREDENTIALS_ID}",
                         imageName: "${DOCKER_IMAGE}",
-                        imageTag: "${BUILD_NUMBER}",
+                        imageTag: "${IMAGE_TAG}",
                         appName: "${APP_NAME}",
                         deploymentFile: "deployment.yaml"
                     )
                 }
             }
         }
-        
-
+    }
     
     post {
         always {
@@ -104,4 +107,4 @@ pipeline {
             echo "Pipeline failed!"
         }
     }
-}}
+}
