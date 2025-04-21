@@ -1,0 +1,106 @@
+@Library('jenkins-shared-library') _
+
+pipeline {
+    agent {
+        label 'slave'
+    }
+    
+    environment {
+        APP_NAME = 'ivolve-webapp'
+        DOCKER_REGISTRY = 'hagert'
+        DOCKER_IMAGE = "${DOCKER_REGISTRY}/${APP_NAME}"
+        DOCKER_CREDENTIALS_ID = 'docker'
+        SONARQUBE_SERVER = 'SonarQube'
+        GIT_CREDENTIALS_ID = 'git'
+        MANIFEST_REPO = 'https://github.com/Hager706/kubernetes-manifests.git'
+        IMAGE_TAG = "v${BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Unit Test') {
+            steps {
+                dir('Docker/web-app') {  
+                echo "Running unit tests..."
+                sh './gradlew clean test'
+            }
+            post {
+                always {
+                    junit '**/build/test-results/test/*.xml'
+                }
+            }
+        }}
+        
+        stage('SonarQube Test') {
+            steps {
+                dir('Docker/web-app') {  
+                withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
+                    echo "Running SonarQube analysis..."
+                    sh './gradlew sonarqube'
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }}
+        
+        stage('Build JAR') {
+            steps {
+                dir('Docker/web-app') {  
+                echo "Building JAR file..."
+                 sh 'chmod +x gradlew'
+                sh './gradlew build -x test'
+                archiveArtifacts artifacts: 'build/libs/*.jar', fingerprint: true
+            }
+        }}
+           stage('Manage Docker Image') {
+            steps {
+                dir('Docker') {  
+                    script {
+                    BuildandPushDockerimage("${DOCKERHUB_CRED_ID}", "${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}")
+                }
+                }                
+            }
+        
+           }
+        stage('Delete Image Locally') {
+            steps {
+                echo "Cleaning up local Docker image..."
+                script {
+                    deleteLocalDockerImage(
+                        imageName: "${DOCKER_IMAGE}",
+                        tag: "${BUILD_NUMBER}"
+                    )
+                }
+            }
+        }
+        
+        stage('Update Manifests') {
+            steps {
+                echo "Updating Kubernetes manifests..."
+                script {
+                    updateKubernetesManifests(
+                        manifestsRepo: "${MANIFEST_REPO}",
+                        credentialsId: "${GIT_CREDENTIALS_ID}",
+                        imageName: "${DOCKER_IMAGE}",
+                        imageTag: "${BUILD_NUMBER}",
+                        appName: "${APP_NAME}",
+                        deploymentFile: "deployment.yaml"
+                    )
+                }
+            }
+        }
+        
+
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "Pipeline completed successfully!"
+        }
+        failure {
+            echo "Pipeline failed!"
+        }
+    }
+}
