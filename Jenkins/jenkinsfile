@@ -75,13 +75,13 @@ pipeline {
             }
         }
         
-        stage('Update Manifests') {
+        tage('Update Manifests') {
             steps {
                 echo "Updating Kubernetes manifests..."
                 script {
                     updateKubernetesManifests(
                         manifestsRepo: "${MANIFEST_REPO}",
-                        credentialsId: "${GIT_CREDENTIALS_ID}",
+                        credentialsId: "${GIT_CREDENTIALS_ID}",  // Optional - only needed for push
                         imageName: "${DOCKER_IMAGE}",
                         imageTag: "${IMAGE_TAG}",
                         appName: "${APP_NAME}",
@@ -90,8 +90,8 @@ pipeline {
                 }
             }
         }
-        
     }
+    
     
     post {
         always {
