@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-public class MathServiceTest {
+ class MathServiceTest {
 
     @Autowired
     private MathService mathService;

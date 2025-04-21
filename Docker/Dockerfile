@@ -19,7 +19,7 @@ FROM eclipse-temurin:17-jre-jammy AS runtime
 WORKDIR /app
 
 # Copy the built JAR file from the builder stage
-COPY --from=builder /app/build/libs/*.jar app/ 
+COPY --from=builder /app/build/libs/demo-0.0.1-SNAPSHOT.jar app.jar
 # Expose the port the app runs on
 EXPOSE 8081
 
