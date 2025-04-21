@@ -90,6 +90,18 @@ pipeline {
                 }
             }
         }
+           stage('Push Manifests') {
+            steps {
+                echo "Pushing updated manifests to repository..."
+                script {
+                    pushKubernetesManifests(
+                        manifestsRepo: "${MANIFEST_REPO}",
+                        credentialsId: "${GIT_CREDENTIALS_ID}"
+                    )
+                }
+            }
+        }
+    }
     }
     
     post {
