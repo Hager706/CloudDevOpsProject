@@ -37,12 +37,14 @@ pipeline {
                 dir('Docker/web-app') {  
                     withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
                         echo "Running SonarQube analysis..."
-                        sh './gradlew sonarqube'
+                        sh './gradlew sonar'
                     }
-                    timeout(time: 10, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
+                    timeout(time: 30, unit: 'MINUTES') {
+                script {
+                    def qg = waitForQualityGate abortPipeline: true
+                    echo "Quality Gate Status: ${qg.status}"
                     }
-                }
+                }}
             }
         }
         
