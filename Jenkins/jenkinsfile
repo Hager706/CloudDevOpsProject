@@ -14,6 +14,7 @@ pipeline {
         GIT_CREDENTIALS_ID = 'git'
         MANIFEST_REPO = 'https://github.com/Hager706/kubernetes-manifests.git'
         IMAGE_TAG = "v${BUILD_NUMBER}"
+        // scannerHome = tool 'sonar'
     }
     
     stages {
@@ -103,4 +104,4 @@ pipeline {
             echo "Pipeline failed!"
         }
     }
-}
+}}
