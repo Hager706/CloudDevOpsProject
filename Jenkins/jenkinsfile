@@ -60,7 +60,7 @@ pipeline {
                         BuildandPushDockerimage("${DOCKER_CREDENTIALS_ID}", "${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}")
                     }
                 }                
-            
+            }
         }
         
         stage('Delete Image Locally') {
