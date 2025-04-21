@@ -14,7 +14,6 @@ pipeline {
         GIT_CREDENTIALS_ID = 'git'
         MANIFEST_REPO = 'https://github.com/Hager706/kubernetes-manifests.git'
         IMAGE_TAG = "v${BUILD_NUMBER}"
-        // scannerHome = tool 'sonar'
     }
     
     stages {
@@ -36,11 +35,11 @@ pipeline {
             steps {
                 dir('Docker/web-app') {  
                     withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
-                    sh './gradlew sonar -Dsonar.qualitygate.wait=false'
+                        sh './gradlew sonar -Dsonar.qualitygate.wait=false'
                     }
-                }}
+                }
             }
-        
+        }
         
         stage('Build JAR') {
             steps {
@@ -57,7 +56,12 @@ pipeline {
             steps {
                 dir('Docker') {  
                     script {
-                        BuildandPushDockerimage("${DOCKER_CREDENTIALS_ID}", "${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}")
+                        BuildandPushDockerimage(
+                            "${DOCKER_CREDENTIALS_ID}", 
+                            "${DOCKER_REGISTRY}", 
+                            "${DOCKER_IMAGE}", 
+                            "${IMAGE_TAG}"
+                        )
                     }
                 }                
             }
@@ -75,13 +79,13 @@ pipeline {
             }
         }
         
-        tage('Update Manifests') {
+        stage('Update Manifests') {
             steps {
                 echo "Updating Kubernetes manifests..."
                 script {
                     updateKubernetesManifests(
                         manifestsRepo: "${MANIFEST_REPO}",
-                        credentialsId: "${GIT_CREDENTIALS_ID}",  // Optional - only needed for push
+                        credentialsId: "${GIT_CREDENTIALS_ID}",
                         imageName: "${DOCKER_IMAGE}",
                         imageTag: "${IMAGE_TAG}",
                         appName: "${APP_NAME}",
@@ -91,7 +95,6 @@ pipeline {
             }
         }
     }
-    
     
     post {
         always {
