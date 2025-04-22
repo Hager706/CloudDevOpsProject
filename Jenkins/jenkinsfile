@@ -96,19 +96,19 @@ pipeline {
             }
         }
         
-        stage('Push Manifests') {
-            steps {
-                echo "Pushing updated manifests to repository..."
-                script {
-                    // Use the directory path returned from the previous stage
-                    pushKubernetesManifests(
-                        credentialsId: "${GIT_CREDENTIALS_ID}",
-                        workDir: env.MANIFESTS_WORKSPACE
-                    )
-                }
-            }
+    stage('Push Manifests') {
+    steps {
+        echo "Pushing updated manifests to repository..."
+        script {
+            // Use the directory path returned from the previous stage
+            pushKubernetesManifests(
+                credentialsId: "${GIT_CREDENTIALS_ID}",
+                workDir: env.MANIFESTS_WORKSPACE,
+                credentialType: 'ssh'  // Specify that you're using SSH credentials
+            )
         }
     }
+}}
     
     post {
         always {
