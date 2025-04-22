@@ -85,20 +85,17 @@ pipeline {
         }
        stage('Update Manifests') {
             steps {
-                dir('kubernetes') {  
                     script {
-                        updateManifests("${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}", "${DEPLOYMENT}")
+                        updateKubernetesManifests("${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}", "${DEPLOYMENT}")
                     }
-                }
+                
             }   
         }             
         stage('Push Manifests') {
             steps {
-                dir('kubernetes') {  
                     script {
-                        pushManifests("${REPO_NAME}", "${GIT_USERNAME}", "${EMAIL}", "${GIT_CREDENTIALS_ID}")
+                        pushKubernetesManifests("${REPO_NAME}", "${GIT_USERNAME}", "${EMAIL}", "${GIT_CREDENTIALS_ID}")
                     }
-                }
             }            
         }
         
