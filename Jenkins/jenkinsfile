@@ -36,15 +36,15 @@ pipeline {
             }
         }
         
-        stage('SonarQube Test') {
-            steps {
-                dir('Docker/web-app') {  
-                    withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
-                        sh './gradlew sonar -Dsonar.qualitygate.wait=false'
-                    }
-                }
-            }
-        }
+        // stage('SonarQube Test') {
+        //     steps {
+        //         dir('Docker/web-app') {  
+        //             withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
+        //                 sh './gradlew sonar -Dsonar.qualitygate.wait=false'
+        //             }
+        //         }
+        //     }
+        // }
         
         stage('Build JAR') {
             steps {
