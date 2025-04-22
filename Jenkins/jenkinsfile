@@ -101,7 +101,7 @@ pipeline {
                 echo "Pushing updated manifests to repository..."
                 script {
                     // Use the directory path returned from the previous stage
-                    pushManifests(
+                    pushKubernetesManifests(
                         credentialsId: "${GIT_CREDENTIALS_ID}",
                         workDir: env.MANIFESTS_WORKSPACE
                     )
