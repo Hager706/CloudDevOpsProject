@@ -79,36 +79,21 @@ pipeline {
             }
         }
         
-        stage('Update Manifests') {
+        stage('Update Manifest') {
             steps {
-                echo "Updating Kubernetes manifests..."
-                script {
-                    // Save the returned workspace directory path
-                    env.MANIFESTS_WORKSPACE = updateKubernetesManifests(
-                        manifestsRepo: "${MANIFEST_REPO}",
-                        credentialsId: "${GIT_CREDENTIALS_ID}",
-                        imageName: "${DOCKER_IMAGE}",
-                        imageTag: "${BUILD_NUMBER}",
-                        appName: "${APP_NAME}",
-                        deploymentFile: "deployment.yaml"
-                    )
-                }
+                ManifestUpdate(
+                    image_name: IMAGE_NAME,
+                    github_credentials: GITHUB_CREDENTIALS_ID,
+                    manifestFile: MANIFEST_FILE,
+                    manifestDir: MANIFEST_DIR,
+                    email: "jenkins@example.com",
+                    username: "jenkins",
+                    dockerhub_username: REGISTRY_USERNAME,
+                    manifest_repo: MANIFEST_REPO
+                )
             }
         }
-        
-    stage('Push Manifests') {
-    steps {
-        echo "Pushing updated manifests to repository..."
-        script {
-            // Use the directory path returned from the previous stage
-            pushKubernetesManifests(
-                credentialsId: "${GIT_CREDENTIALS_ID}",
-                workDir: env.MANIFESTS_WORKSPACE,
-                credentialType: 'ssh'  // Specify that you're using SSH credentials
-            )
-        }
     }
-}}
     
     post {
         always {
