@@ -14,6 +14,11 @@ pipeline {
         GIT_CREDENTIALS_ID = 'github'
         MANIFEST_REPO = 'https://github.com/Hager706/kubernetes-manifests.git'
         IMAGE_TAG = "v${BUILD_NUMBER}"
+        REPO_NAME = 'kubernetes-manifests'
+        GIT_USERNAME = 'Hager706'
+        EMAIL = 'hagertarek706@gmail.com'
+        DEPLOYMENT = 'deployment.yaml' 
+
     }
     
     stages {
@@ -78,21 +83,25 @@ pipeline {
                 }
             }
         }
-        
-        stage('Update Manifest') {
+       stage('Update Manifests') {
             steps {
-                ManifestUpdate(
-                    image_name: IMAGE_NAME,
-                    github_credentials: GITHUB_CREDENTIALS_ID,
-                    manifestFile: MANIFEST_FILE,
-                    manifestDir: MANIFEST_DIR,
-                    email: "jenkins@example.com",
-                    username: "jenkins",
-                    dockerhub_username: REGISTRY_USERNAME,
-                    manifest_repo: MANIFEST_REPO
-                )
-            }
+                dir('kubernetes') {  
+                    script {
+                        updateManifests("${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}", "${DEPLOYMENT}")
+                    }
+                }
+            }   
+        }             
+        stage('Push Manifests') {
+            steps {
+                dir('kubernetes') {  
+                    script {
+                        pushManifests("${REPO_NAME}", "${GIT_USERNAME}", "${EMAIL}", "${GIT_CREDENTIALS_ID}")
+                    }
+                }
+            }            
         }
+        
     }
     
     post {
