@@ -78,11 +78,13 @@ pipeline {
                 }
             }
         }
-           stage('Update Manifests') {
+        
+        stage('Update Manifests') {
             steps {
                 echo "Updating Kubernetes manifests..."
                 script {
-                    updateKubernetesManifests(
+                    // Save the returned workspace directory path
+                    env.MANIFESTS_WORKSPACE = updateKubernetesManifests(
                         manifestsRepo: "${MANIFEST_REPO}",
                         credentialsId: "${GIT_CREDENTIALS_ID}",
                         imageName: "${DOCKER_IMAGE}",
@@ -94,14 +96,15 @@ pipeline {
             }
         }
         
-      stage('Push Manifests') {
+        stage('Push Manifests') {
             steps {
                 echo "Pushing updated manifests to repository..."
                 script {
-                    pushManifests([
-                        credentialsId: 'git',
+                    // Use the directory path returned from the previous stage
+                    pushManifests(
+                        credentialsId: "${GIT_CREDENTIALS_ID}",
                         workDir: env.MANIFESTS_WORKSPACE
-                    ])
+                    )
                 }
             }
         }
