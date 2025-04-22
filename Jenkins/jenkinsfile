@@ -11,14 +11,13 @@ pipeline {
         DOCKER_IMAGE = "${DOCKER_REGISTRY}/${APP_NAME}"
         DOCKER_CREDENTIALS_ID = 'docker'
         SONARQUBE_SERVER = 'SonarQube'
-        GIT_CREDENTIALS_ID = 'github'
+        GIT_CREDENTIALS_ID = 'github' 
         MANIFEST_REPO = 'https://github.com/Hager706/kubernetes-manifests.git'
-        IMAGE_TAG = "v${BUILD_NUMBER}"
+        IMAGE_TAG = "${BUILD_NUMBER}"  
         REPO_NAME = 'kubernetes-manifests'
         GIT_USERNAME = 'Hager706'
         EMAIL = 'hagertarek706@gmail.com'
-        DEPLOYMENT = 'deployment.yaml' 
-
+        DEPLOYMENT = 'deployment.yaml'
     }
     
     stages {
@@ -35,16 +34,6 @@ pipeline {
                 }
             }
         }
-        
-        // stage('SonarQube Test') {
-        //     steps {
-        //         dir('Docker/web-app') {  
-        //             withSonarQubeEnv(installationName: "${SONARQUBE_SERVER}") {
-        //                 sh './gradlew sonar -Dsonar.qualitygate.wait=false'
-        //             }
-        //         }
-        //     }
-        // }
         
         stage('Build JAR') {
             steps {
@@ -83,22 +72,34 @@ pipeline {
                 }
             }
         }
-       stage('Update Manifests') {
+        
+        stage('Update Manifests') {
             steps {
-                    script {
-                        updateKubernetesManifests("${DOCKER_REGISTRY}", "${DOCKER_IMAGE}", "${IMAGE_TAG}", "${DEPLOYMENT}")
-                    }
-                
-            }   
-        }             
-        stage('Push Manifests') {
-            steps {
-                    script {
-                        pushKubernetesManifests("${REPO_NAME}", "${GIT_USERNAME}", "${EMAIL}", "${GIT_CREDENTIALS_ID}")
-                    }
-            }            
+                echo "Updating Kubernetes manifests..."
+                script {
+                    env.MANIFESTS_WORKSPACE = updateKubernetesManifests(
+                        manifestsRepo: "${MANIFEST_REPO}",
+                        credentialsId: "${GIT_CREDENTIALS_ID}",
+                        imageName: "${DOCKER_IMAGE}",
+                        imageTag: "${IMAGE_TAG}",
+                        appName: "${APP_NAME}",
+                        deploymentFile: "${DEPLOYMENT}"
+                    )
+                }
+            }
         }
         
+        stage('Push Manifests') {
+            steps {
+                echo "Pushing updated manifests to repository..."
+                script {
+                    pushKubernetesManifests(
+                        credentialsId: "${GIT_CREDENTIALS_ID}",
+                        workDir: env.MANIFESTS_WORKSPACE
+                    )
+                }
+            }
+        }
     }
     
     post {
