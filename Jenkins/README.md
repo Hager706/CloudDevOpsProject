@@ -186,10 +186,15 @@ After pipeline completion, verify all components:
    - Check the Git repository commit history
    - Verify deployment.yaml was updated with new image tag
 
+![Alt text](assets/pic12.png)
+
 3. Application:
    - Check Kubernetes cluster for new deployment
    - Verify application pods are running with new image
    - Test application functionality
+
+![Alt text](assets/pic13.png)
+![Alt text](assets/pic14.png)
 
 4. Jenkins Artifacts:
    - Check archived JAR file in build artifacts
