@@ -34,3 +34,7 @@ variable "key_name" {
   description = "Name of the SSH key pair"
   type        = string
 }
+variable "ami" {
+  type    = string
+  default = "ami-084568db4383264d4"
+}

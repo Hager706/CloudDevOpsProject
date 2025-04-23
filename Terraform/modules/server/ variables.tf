@@ -34,5 +34,10 @@ variable "instance_count" {
 variable "app_port" {
   description = "Port the application runs on"
   type        = number
-  default     = 8081
+  default     = 8080
+}
+variable "ami" {
+  description = "UBUNTU" 
+  type        = string
+  default     = "ami-084568db4383264d4" # Update for your region
 }

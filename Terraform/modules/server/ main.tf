@@ -49,7 +49,7 @@ data "aws_ami" "amazon_linux" {
 
 resource "aws_instance" "app" {
   count                  = var.instance_count
-  ami                    = data.aws_ami.amazon_linux.id
+  ami                    = var.ami
   instance_type          = var.instance_type
   key_name               = var.key_name
   subnet_id              = var.subnet_ids[count.index % length(var.subnet_ids)]

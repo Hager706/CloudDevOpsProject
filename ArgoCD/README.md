@@ -1,9 +1,9 @@
 # ArgoCD Deployment Configuration for iVolve Web Application
 
 ## Prerequisites
-- Kubernetes cluster with ArgoCD installed from here (https://gist.github.com/bhimsur/b6c575916883ff7712861beacbe1ff0b)
-- Access to ArgoCD web UI (typically https://your-argocd-server)
-- Existing Kubernetes manifests repository
+- Kubernetes cluster with ArgoCD installed 
+- Access to ArgoCD web UI (typically https://8080)
+- Existing Kubernetes manifests repository (https://github.com/hager706/kubernetes-manifests.git)
 - Cluster admin permissions
 
 ## Step 1: Prepare Kubernetes Manifests Repository
