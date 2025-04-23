@@ -6,7 +6,7 @@ A comprehensive end-to-end CI/CD infrastructure for containerized applications, 
 
 ![Alt text](<Untitled Diagram.drawio.svg>)
 
-![Alt text](assets.webp)
+![Alt text](<Screenshot 2025-04-23 at 2.25.02 PM.png>)
 
 ## 🚀 Architecture Overview
 
