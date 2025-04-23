@@ -4,9 +4,10 @@ A comprehensive end-to-end CI/CD infrastructure for containerized applications, 
 
 ## Project Archticture 
 
-![Alt text](<Untitled Diagram.drawio (2).svg>)
+![Alt text](<Untitled Diagram.drawio.svg>)
 
 ![Alt text](assets.webp)
+
 ## 🚀 Architecture Overview
 
 This project implements a complete DevOps infrastructure with the following major components:
