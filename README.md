@@ -1,121 +1,124 @@
-# 🚀 iVolve CI/CD Infrastructure Project
+## 🏗️ Architecture Overview
 
-![Architecture Diagram](./docs/assets/architecture-diagram.png)
+![Architecture Diagram](./docs/architecture-diagram.png) <!-- You can create this image and place it inside `docs/` -->
 
-## 📋 Table of Contents
-1. [🔍 Project Overview](#project-overview)
-2. [🏗 System Architecture](#system-architecture)
-3. [⚙️ Infrastructure Components](#infrastructure-components)
-4. [🚦 Getting Started](#getting-started)
-5. [📚 Detailed Documentation](#detailed-documentation)
-6. [🗂 Project Structure](#project-structure)
-7. [⚠️ Troubleshooting](#troubleshooting)
-8. [🤝 Contributing](#contributing)
+The system is divided into three major areas:
+- **AWS Infrastructure**: Provisioned using Terraform to create Jenkins Master/Slave EC2 instances and supporting services like S3 and CloudWatch.
+- **Local Development Environment**: A Minikube Kubernetes cluster running containerized applications.
+- **ArgoCD GitOps Deployment**: Automatically synchronizes application manifests from GitHub to Kubernetes.
 
-## 🔍 Project Overview
-This project implements a complete CI/CD pipeline for the iVolve web application, featuring:
-- ☁️ Terraform-provisioned AWS infrastructure
-- 🏗️ Jenkins-based build automation
-- 🎛️ ArgoCD for GitOps deployments
-- 💻 Local Kubernetes development environment
+---
 
-## 🏗 System Architecture
+## 🛠️ Components
 
 ### ☁️ AWS Infrastructure (Terraform Provisioned)
-| Component               | Description                                                                 |
-|-------------------------|-----------------------------------------------------------------------------|
-| **🖥️ EC2 Instance 1 (Master)** | Hosts Jenkins Master and SonarQube, configured via Ansible                  |
-| **💻 EC2 Instance 2 (Slave)**  | Dedicated Jenkins Slave for build execution, Ansible-configured             |
-| **🛠️ Supporting Services**     | S3 for Terraform state, CloudWatch for monitoring                           |
+- **EC2 Instance 1 (Master)**:
+  - Jenkins Master
+  - SonarQube Server
+  - Configured with Ansible
+- **EC2 Instance 2 (Slave)**:
+  - Jenkins Slave for executing pipeline jobs
+  - Configured with Ansible
+- **Supporting Services**:
+  - S3 bucket for Terraform state
+  - CloudWatch for monitoring and logging
 
-### 💻 Local Development Environment
-- 🏗️ Minikube cluster with dedicated "iVolve" namespace
-- ⚙️ Manages Deployments, Services, and Ingress resources
+### 💻 Local Development (Minikube Cluster)
+- Kubernetes cluster hosting the containerized application
+- Resources under a dedicated `iVolve` namespace
 
-### 🎛️ ArgoCD Implementation
-| Component          | Functionality                                                      |
-|--------------------|--------------------------------------------------------------------|
-| 🎮 Application Controller | Manages application state and sync operations                     |
-| 📦 Repository Server  | Maintains cached application repositories                          |
-| 🔌 API Server         | Provides RESTful interface for operations                          |
-| 🔄 GitOps Engine      | Handles Git-to-Kubernetes synchronization                          |
+### 📦 ArgoCD Deployment
+- GitOps-based deployment mechanism
+- Monitors GitHub for changes and syncs to Minikube automatically
 
-## ⚙️ Infrastructure Components
+---
 
-### 1. ☁️ AWS Setup
-```bash
-terraform/aws/
-├── main.tf          # Primary infrastructure configuration
-├── variables.tf     # Variable definitions
-└── outputs.tf       # Output values
-```
+## 🧰 Prerequisites
 
-### 2. 🏗️ Jenkins Configuration
-```bash
-jenkins/
-├── Jenkinsfile      # Pipeline definition
-├── ansible/         # Configuration playbooks
-└── slave-config/    # Slave node setup
-```
+- AWS Account with permissions to create EC2, S3, and CloudWatch resources
+- Terraform installed
+- Ansible installed
+- Docker installed
+- Minikube installed
+- kubectl installed
+- ArgoCD CLI installed
+- GitHub repository to store your application code and Kubernetes manifests
 
-### 3. 🎛️ ArgoCD Setup
-```bash
-argocd/
-├── applications/    # Application manifests
-├── config/          # ArgoCD configuration
-└── bootstrap/       # Initial setup scripts
-```
+---
 
-### 4. 🏗️ Local Kubernetes
-```bash
-kubernetes/
-├── manifests/       # Deployment files
-├── minikube/        # Local cluster config
-└── helm/            # Optional Helm charts
-```
+## ⚡ Quick Start
 
-## 🚦 Getting Started
-
-### 📋 Prerequisites
-- ☁️ AWS account with EC2 permissions
-- 🏗️ Terraform v1.0+
-- ⚙️ Ansible 2.9+
-- 💻 Minikube v1.20+
-
-### ⚡ Initial Setup
-1. Provision AWS infrastructure:
+1. Clone this repository:
    ```bash
-   cd terraform/aws
+   git clone https://github.com/your-username/your-repo.git
+   cd your-repo
+   ```
+
+2. Provision AWS Infrastructure:
+   ```bash
+   cd terraform
    terraform init
    terraform apply
    ```
 
-2. Configure Jenkins:
+3. Configure EC2 Instances:
    ```bash
-   ansible-playbook jenkins/ansible/master-setup.yml
+   cd ansible
+   ansible-playbook master-setup.yml
+   ansible-playbook slave-setup.yml
    ```
 
-3. Deploy ArgoCD:
+4. Deploy ArgoCD to Minikube:
    ```bash
-   kubectl apply -n argocd -f argocd/bootstrap/install.yaml
+   cd argocd
+   kubectl apply -f install.yaml
    ```
+
+5. Connect ArgoCD to your GitHub repository:
+   ```bash
+   argocd app create ivolve-app --repo https://github.com/your-username/your-repo.git --path k8s-manifests --dest-server https://kubernetes.default.svc --dest-namespace ivolve
+   argocd app sync ivolve-app
+   ```
+
+6. Push your code changes, and watch your pipeline automatically build and deploy your application!
+
+---
+
+## 🔄 CI/CD Pipeline Flow
+
+1. Developer pushes code to GitHub.
+2. Jenkins Master detects changes and triggers the pipeline.
+3. Jenkins Slave runs:
+   - ✅ Unit tests
+   - ✅ SonarQube analysis
+   - ✅ JAR file build
+   - ✅ Docker image build and push
+   - ✅ Kubernetes manifests update
+   - ✅ GitHub commit
+4. ArgoCD detects updated manifests.
+5. ArgoCD syncs changes into the Minikube cluster.
+6. 🚀 Application is deployed/updated automatically.
+
+---
+
+## 📁 Project Structure
+
+```
+/terraform         -> Terraform scripts for AWS infrastructure
+/ansible           -> Ansible playbooks for EC2 configuration
+/jenkins           -> Jenkins pipelines and configurations
+/argocd            -> ArgoCD setup files and application definitions
+/k8s-manifests     -> Kubernetes deployment manifests
+/docs              -> Detailed documentation and diagrams
+README.md          -> This file
+```
+
+---
 
 ## 📚 Detailed Documentation
-- [☁️ AWS Infrastructure Guide](./docs/aws-guide.md)
-- [🏗️ Jenkins Pipeline Walkthrough](./docs/jenkins-pipeline.md)
-- [🎛️ ArgoCD Configuration](./docs/argocd-config.md)
-- [💻 Local Development Setup](./docs/local-dev.md)
 
-## 🗂 Project Structure
-```
-ivolve-cicd/
-├── terraform/       # ☁️ Infrastructure as Code
-├── jenkins/         # 🏗️ CI Pipeline Configuration
-├── argocd/          # 🎛️ GitOps Deployment
-├── kubernetes/      # ⚙️ Cluster Manifests
-├── docs/            # 📚 Documentation
-│   ├── assets/      # 🖼️ Diagrams and images
-│   └── *.md        # 📄 Component guides
-└── README.md        # 📋 This document
-```
+- [AWS Setup](./docs/aws-setup.md)
+- [Jenkins Configuration](./docs/jenkins-setup.md)
+- [ArgoCD Setup](./docs/argocd-setup.md)
+- [Local Development (Minikube)](./docs/local-development.md)
 
