@@ -2,7 +2,7 @@
 
 A comprehensive end-to-end CI/CD infrastructure for containerized applications, featuring AWS infrastructure provisioning, automated configuration management, continuous integration, and GitOps-based deployment to Kubernetes.
 
-![CI/CD Pipeline Flow](https://via.placeholder.com/800x400?text=iVolve+CI/CD+Architecture)
+![CI/CD Pipeline Flow](file:///Users/macbook/Downloads/Untitled%20Diagram.drawio.svg)
 
 ## 🚀 Architecture Overview
 
