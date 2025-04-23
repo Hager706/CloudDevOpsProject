@@ -2,8 +2,11 @@
 
 A comprehensive end-to-end CI/CD infrastructure for containerized applications, featuring AWS infrastructure provisioning, automated configuration management, continuous integration, and GitOps-based deployment to Kubernetes.
 
-![Alt text](<Untitled Diagram.drawio.svg>)
+## Project Archticture 
 
+![Alt text](<Untitled Diagram.drawio (2).svg>)
+
+![Alt text](assets.webp)
 ## 🚀 Architecture Overview
 
 This project implements a complete DevOps infrastructure with the following major components:
